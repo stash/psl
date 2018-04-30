@@ -16,15 +16,12 @@ const internals = {};
 //
 // Download URL and path to rules.json file.
 //
-internals.src = 'https://publicsuffix.org/list/effective_tld_names.dat';
+internals.src = 'https://publicsuffix.org/list/public_suffix_list.dat';
 internals.dest = Path.join(__dirname, 'rules.json');
 internals.destTmp = Path.join(__dirname, 'rules.json.tmp');
 internals.metaFile = Path.join(__dirname, 'meta.json');
 internals.metaFileTmp = Path.join(__dirname, 'meta.json.tmp');
 internals.hashAlgo = 'sha512';
-internals.metadata = {
-  'start': new Date().toISOString()
-};
 
 //
 // Parse line (trim and ignore empty lines and comments).
@@ -73,22 +70,35 @@ internals.parseLine = function (line, cb) {
 internals.downloadAndCreate = function (cb) {
 
   var headers;
+  var srcHash = Crypto.createHash(internals.hashAlgo);
+  srcHash.setEncoding('hex');
 
-  Request.get(internals.src)
-    .on('response', (response) => {
+  var finished = 0;
+  var finish = () => {
 
-      console.log(response.headers);
-      headers = response.headers;
-    })
+    if ((++finished) < 2) { // wait for both callbacks
+      return;
+    }
+
+    var srcChecksum = internals.hashAlgo + '-' + srcHash.read();
+    cb(null, headers, srcChecksum);
+  };
+
+  var req = Request.get(internals.src);
+
+  // calculate stream checksum
+  req.pipe(srcHash)
+    .on('finish', finish);
+
+  // process the stream into JSON
+  req.on('response', (response) => { headers = response.headers })
     .pipe(EventStream.split())
     .pipe(EventStream.map(internals.parseLine))
     .pipe(JSONStream.stringify('[', ',', ']'))
     .pipe(Fs.createWriteStream(internals.destTmp))
     .on('error', cb)
-    .on('finish', () => {
+    .on('finish', finish);
 
-      cb(null,headers);
-    });
 };
 
 internals.checksumFileSync = function (filename) {
@@ -98,9 +108,9 @@ internals.checksumFileSync = function (filename) {
   return internals.hashAlgo + '-' + oldHash.digest('hex');
 };
 
-internals.commitIfChanged = function (headers, cb) {
+internals.commitIfChanged = function (headers, srcChecksum, cb) {
 
-  var metadata = { checksum: '' };
+  var metadata = { checksum: '', src: '' };
   try {
     metadata = JSON.parse(Fs.readFileSync(internals.metaFile,'utf8'));
   }
@@ -112,11 +122,17 @@ internals.commitIfChanged = function (headers, cb) {
   var oldChecksum = internals.checksumFileSync(internals.dest);
   var newChecksum = internals.checksumFileSync(internals.destTmp);
 
-  if (metadata.checksum === oldChecksum && oldChecksum === newChecksum) {
+  if (
+    metadata.src === internals.src && // same URL
+    metadata.srcChecksum === srcChecksum && // same raw data checksum
+    metadata.checksum === oldChecksum && // same compiled JSON checksum
+    oldChecksum === newChecksum // written JSON also the same
+  ) {
     return cb(new Error('Rules file unchanged'));
   }
 
   metadata.src = internals.src;
+  metadata.srcChecksum = srcChecksum;
   metadata.checksum = newChecksum;
   metadata.responseHeaders = headers;
   metadata.timestamp = new Date().toISOString();
@@ -137,14 +153,14 @@ internals.commitIfChanged = function (headers, cb) {
   cb(null);
 };
 
-internals.downloadAndCreate((err, headers) => {
+internals.downloadAndCreate((err, headers, srcChecksum) => {
 
   if (err) {
     console.error(err);
     return process.exit(1);
   }
 
-  internals.commitIfChanged(headers, (err) => {
+  internals.commitIfChanged(headers, srcChecksum, (err) => {
 
     if (err) {
       console.error(err);
