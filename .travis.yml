@@ -1,8 +1,31 @@
 language: node_js
 node_js:
-  - 4
-  - 5
-  - 6
-  - 7
-  - 8
-  - 9
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
+- 10
+deploy:
+  - provider: npm
+    skip_cleanup: true
+    email: jstash@gmail.com
+    api_key:
+      secure: LFcKL1Y1dXb1Ls5yo5hDVDzzrYqRzmfFPHUHHXWf2P670sHw2JXIxG7Pyu2IFrlgqGaSMQTUV5W1+FhqF2l51fKR7St7a6dOiqkKJ61CaVcosof0UdGOb1rN4eeuL+3P1rcqBTGlqE8MX9iVe/JiJ1wjxcvDEi0FmEB9q/Gcxmkd5T4CfKk/o6qIuWahGT/2uo3Rmbqpv/vE0YPhrW6JR0msxp5k/jkP53EJZYijY5dTDUf9roRDfqYT61J7bSqwHUV05SJhG9pUtKZ4if8RmY5RUO1dcjAzG8CLoL0y7OxiWQWpL//ph2hvgIb3I5cKVblRITCnJQcMH+XexPsuhBr+JFes04nKS7IBEcT171qas7+1o4T3xN/xocvcSZMC1We/fbwSctCNaLS9WOtI1qZ3KV6AisWqBKIGzoa2H++eC/0e/ieRwCVqiW8mxmRF0m3dMi/j7Ky5cji+HHMTkeh6FZbijbOjaHuUVXMXuiJRtYwfu1d0jUkyx9OLtkgsn7WTk5Q+tTDlYUzo2+Hzsj9VCi5oH/ZKuQGgeBEyH3mTPTweSLSXlPUdDR8/+iPQfnCB6EHAI9/qnrOtzg0V/Kwuxoii4QzK9ssIKSLy45n0ZjDIZic51Qf2Zp0xxUXuFIBtyDIQ9VslxLqoJaqdMR7BE/g1OiP9xLICtuI9v3U=
+    on:
+      repo: stash/psl
+      branch: autobuild
+      node: 10
+    tag: next
+  - provider: releases
+    skip_cleanup: true
+    api_key:
+      secure: HVd8hLOfv4wFYRBGhOb5+Ye6ufRKgqu9swo3DScrI85YRTRs6GBYPt2aloHdxGxAndCQJP4J4CmsnO654sDOF0Q3YuFYSyBR+JDI8HwY76eiI+9VaZgjpsBnsJZALVaoW5UivEt+eLVp15AbEzaBDnjPxuKCWXuXZy+67661or1xRi8qoA5mOCYpeG4616Xl25xFePVk0TI10c4XSBozfSstPpsk1wEjGTwQK2KCLQY8EdtAd5fmsTfP2D+EdlGRipgRJtN2xZPIl7otzVJtSY00byvJBxdkooZ/TXvDpQpWELb2FERH2IXSdD3kRXv6g1LecUl2YhH8K65bzXDyB6IwSX7wGYT4G0grcmlzgWN6DjSRsRNsBSd714tJ/HFodDsfPa+45udnTk1c+hSXG7rLMVnhl+zoKuPmPsG4YHCZef+6nnK/ksoOenm5wiIgFyzJisQtCd2+rbmpyJTdhY6wQ73HrhZQRfot0/UE0cleGKqQ8RRH/KD19CtYLB/8m0i/pqmiCcTXFcXCkvcbhmKcb0e/h30Tv1ewxSeT3yMU1ALNkyK/udZ0Ev3u1KaTc6B4U1+LA2zZw2MI3pUOe6aMlXch66eHWmwtIJJYX07D/mcU4rcFlE2G2c2Tjx1PYWXtxu4D0taLNcHzkKVJKxeNtMr08xcsZGCMmiXvN1Y=
+    file:
+      - dist/psl.js
+      - dist/psl.min.js
+    on:
+      repo: stash/psl
+      branch: autobuild
+      node: 10
