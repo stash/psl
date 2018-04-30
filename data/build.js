@@ -23,7 +23,7 @@ internals.metaFile = Path.join(__dirname, 'meta.json');
 internals.metaFileTmp = Path.join(__dirname, 'meta.json.tmp');
 internals.hashAlgo = 'sha512';
 internals.metadata = {
-  "start": new Date().toISOString()
+  'start': new Date().toISOString()
 };
 
 //
@@ -70,11 +70,13 @@ internals.parseLine = function (line, cb) {
 //
 // Download rules and create rules.json file.
 //
-internals.downloadAndCreate = function(cb) {
+internals.downloadAndCreate = function (cb) {
+
   var headers;
 
   Request.get(internals.src)
-    .on('response', function(response) {
+    .on('response', (response) => {
+
       console.log(response.headers);
       headers = response.headers;
     })
@@ -83,29 +85,34 @@ internals.downloadAndCreate = function(cb) {
     .pipe(JSONStream.stringify('[', ',', ']'))
     .pipe(Fs.createWriteStream(internals.destTmp))
     .on('error', cb)
-    .on('finish', function() {
+    .on('finish', () => {
+
       cb(null,headers);
     });
 };
 
-internals.checksumFileSync = function(filename) {
+internals.checksumFileSync = function (filename) {
+
   var oldHash = Crypto.createHash(internals.hashAlgo);
   oldHash.update(Fs.readFileSync(filename));
   return internals.hashAlgo + '-' + oldHash.digest('hex');
 };
 
-internals.commitIfChanged = function(headers, cb) {
-  var metadata = { checksum: "" };
+internals.commitIfChanged = function (headers, cb) {
+
+  var metadata = { checksum: '' };
   try {
     metadata = JSON.parse(Fs.readFileSync(internals.metaFile,'utf8'));
-  } catch(e) {
-    e = null; // ignore
+  }
+  catch (e) {
+    // just proceed with defaults
+    console.error('Unable to read old metadata: ' + e.message);
   }
 
   var oldChecksum = internals.checksumFileSync(internals.dest);
   var newChecksum = internals.checksumFileSync(internals.destTmp);
 
-  if (metadata.checksum == oldChecksum && oldChecksum == newChecksum) {
+  if (metadata.checksum === oldChecksum && oldChecksum === newChecksum) {
     return cb(new Error('Rules file unchanged'));
   }
 
@@ -115,10 +122,11 @@ internals.commitIfChanged = function(headers, cb) {
   metadata.timestamp = new Date().toISOString();
 
   try {
-    Fs.writeFileSync(internals.metaFileTmp, JSON.stringify(metadata)+"\n");
+    Fs.writeFileSync(internals.metaFileTmp, JSON.stringify(metadata) + '\n');
     Fs.renameSync(internals.metaFileTmp, internals.metaFile);
     Fs.renameSync(internals.destTmp, internals.dest);
-  } catch (e) {
+  }
+  catch (e) {
     console.error(e);
     return cb(new Error('Incomplete write of rules & metadata'));
   }
@@ -129,12 +137,15 @@ internals.commitIfChanged = function(headers, cb) {
   cb(null);
 };
 
-internals.downloadAndCreate(function(err, headers) {
+internals.downloadAndCreate((err, headers) => {
+
   if (err) {
     console.error(err);
     return process.exit(1);
   }
-  internals.commitIfChanged(headers, function(err) {
+
+  internals.commitIfChanged(headers, (err) => {
+
     if (err) {
       console.error(err);
       return process.exit(1);
