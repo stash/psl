@@ -10,9 +10,7 @@ node_js:
 before_script:
   - '[[ "$TRAVIS_BRANCH" != "autobuild" ]] || yarn build'
 before_deploy:
-  - git add data dist
-  - git commit -m 'autobuild'
-  - npm version patch
+  - ./data/pre-deploy.sh
 deploy:
   - provider: npm
     skip_cleanup: true
