@@ -22,7 +22,6 @@ internals.rules = require('./data/rules.json').map(function (rule) {
   };
 });
 
-
 //
 // Check is given string ends with `suffix`.
 //
@@ -267,3 +266,6 @@ exports.isValid = function (domain) {
   var parsed = exports.parse(domain);
   return Boolean(parsed.domain && parsed.listed);
 };
+
+// Read metadata from file (for validating builds)
+exports.metadata = require('./data/meta.json');
