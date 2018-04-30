@@ -91,7 +91,10 @@ internals.downloadAndCreate = function (cb) {
     .on('finish', finish);
 
   // process the stream into JSON
-  req.on('response', (response) => { headers = response.headers })
+  req.on('response', (response) => {
+
+    headers = response.headers;
+  })
     .pipe(EventStream.split())
     .pipe(EventStream.map(internals.parseLine))
     .pipe(JSONStream.stringify('[', ',', ']'))
